@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mapa Acessível</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <main>
+        <h1 tabindex="0">Locais Acessíveis Próximos</h1>
+        <button onclick="pegarLocalizacao()">Buscar minha localização</button>
+        <div id="map" style="height: 400px; margin-top: 20px;"></div>
+        <div id="resultado" aria-live="polite"></div>
+    </main>
+
+    <script>
+        let mapa;
+        let marcadorUsuario;
+
+        function inicializarMapa(lat, lon) {
+            if (mapa) {
+                mapa.remove();
+            }
+            mapa = L.map('map').setView([lat, lon], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(mapa);
+
+            marcadorUsuario = L.marker([lat, lon]).addTo(mapa)
+                .bindPopup('Você está aqui.')
+                .openPopup();
+        }
+
+        function pegarLocalizacao() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(enviarParaServidor, erro => {
+                    alert("Erro ao obter localização.");
+                });
+            } else {
+                alert("Geolocalização não suportada.");
+            }
+        }
+
+        function enviarParaServidor(pos) {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            inicializarMapa(lat, lon);
+
+            fetch("/buscar", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ lat, lon })
+            })
+            .then(resp => resp.json())
+            .then(dados => {
+                const div = document.getElementById("resultado");
+                if (dados.length === 0) {
+                    div.innerHTML = "<p>Nenhum local acessível encontrado nas proximidades.</p>";
+                } else {
+                    div.innerHTML = "<ul>" + dados.map(l =>
+                        `<li><strong>${l.nome}</strong><br>Latitude: ${l.lat}, Longitude: ${l.lon}</li>`
+                    ).join('') + "</ul>";
+
+                    dados.forEach(loc => {
+                        L.marker([loc.lat, loc.lon]).addTo(mapa)
+                            .bindPopup(`<b>${loc.nome}</b>`);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

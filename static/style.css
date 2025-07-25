@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #fff;
+    color: #000;
+    padding: 2em;
+    line-height: 1.6;
+}
+
+button {
+    padding: 10px;
+    font-size: 1.1em;
+    background-color: #004080;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:focus {
+    outline: 3px solid yellow;
+}
+
+ul {
+    margin-top: 1em;
+    padding-left: 1em;
+}
+
+li {
+    margin-bottom: 1em;
+}
+
+main {
+    max-width: 600px;
+    margin: auto;
+}
